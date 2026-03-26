@@ -3,135 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Tree - Standard English Pro</title>
+    <title>Family Tree - 4 Color Edition (Black Line)</title>
     
-    <!-- PDF Generation Libraries -->
+    <!-- Libraries for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
         :root {
-            --line-color: #333;
-            --font-main: -apple-system, system-ui, sans-serif;
+            --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             --ios-blue: #007AFF;
+            /* Branch Colors */
+            --color-1: #007AFF; /* Blue */
+            --color-2: #34C759; /* Green */
+            --color-3: #FF3B30; /* Red */
+            --color-4: #000000; /* BLACK (Changed from Orange) */
+            --default-line: #555;
         }
 
         body {
-            background-color: #f2f2f7;
+            background-color: #ffffff;
             font-family: var(--font-main);
-            margin: 0; padding: 20px; color: #1c1c1e;
+            margin: 0; padding: 20px;
             text-align: center;
         }
 
-        /* UI Elements */
-        .header-ui { margin-bottom: 30px; }
-        .header-ui h2 { font-size: 28px; font-weight: 800; margin: 0; color: #000; }
-        .header-ui p { font-size: 14px; color: #8e8e93; margin-top: 5px; }
+        .header-ui { margin-bottom: 20px; }
+        .header-ui h2 { font-size: 24px; font-weight: 800; margin: 0; }
+        .header-ui p { font-size: 12px; color: #888; }
 
+        /* PDF Button */
         .pdf-btn {
             position: fixed; bottom: 30px; right: 30px;
-            padding: 15px 25px; background: var(--ios-blue);
+            padding: 12px 25px; background: var(--ios-blue);
             color: white; border: none; border-radius: 50px;
-            font-weight: bold; font-size: 16px; cursor: pointer;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.15); z-index: 1000;
+            font-weight: bold; font-size: 14px; cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1); z-index: 1000;
         }
 
-        /* --- TREE ARCHITECTURE (Standard Downward) --- */
+        /* --- TREE ARCHITECTURE --- */
         #capture-area {
-            background: white; padding: 60px 40px; border-radius: 30px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            background: white; padding: 60px 20px;
             display: inline-block; min-width: 100%;
             overflow-x: auto; text-align: center;
         }
 
         .tree { display: inline-block; white-space: nowrap; }
         .tree ul {
-            padding-top: 30px; position: relative;
+            padding-top: 40px; position: relative;
             display: flex; justify-content: center;
             list-style: none; padding-left: 0; margin: 0;
         }
 
         .tree li {
             text-align: center; list-style-type: none;
-            position: relative; padding: 30px 10px 0 10px;
-            transition: all 0.3s;
+            position: relative; padding: 20px 5px 0 5px;
+            --line-weight: 2px;
         }
 
-        /* The horizontal bracket line */
+        /* Horizontal Connector Lines */
         .tree li::before, .tree li::after {
             content: ''; position: absolute; top: 0; right: 50%;
-            border-top: 2px solid var(--line-color);
-            width: 50%; height: 30px;
+            border-top: var(--line-weight) solid var(--branch-color, var(--default-line));
+            width: 50%; height: 20px;
         }
-        .tree li::after { right: auto; left: 50%; border-left: 2px solid var(--line-color); }
+        .tree li::after { right: auto; left: 50%; border-left: var(--line-weight) solid var(--branch-color, var(--default-line)); }
 
-        /* Remove lines for single child */
         .tree li:only-child::after, .tree li:only-child::before { display: none; }
         .tree li:only-child { padding-top: 0; }
-
-        /* Remove "wings" from far left and right children */
         .tree li:first-child::before, .tree li:last-child::after { border: 0 none; }
-        .tree li:last-child::before { border-right: 2px solid var(--line-color); border-radius: 0 12px 0 0; }
-        .tree li:first-child::after { border-radius: 12px 0 0 0; }
-
-        /* The vertical line from parent down to the bracket */
-        .tree ul ul::before {
-            content: ''; position: absolute; top: 0; left: 50%;
-            border-left: 2px solid var(--line-color);
-            width: 0; height: 30px;
+        
+        .tree li:last-child::before { 
+            border-right: var(--line-weight) solid var(--branch-color, var(--default-line)); 
+            border-radius: 0 10px 0 0; 
+        }
+        .tree li:first-child::after { 
+            border-radius: 10px 0 0 0; 
         }
 
-        /* --- NODE BOX STYLING --- */
-        .node-box {
-            position: relative; display: inline-flex; flex-direction: column;
-            align-items: center; border-radius: 16px; padding: 12px 20px;
-            width: auto; min-width: 100px; max-width: 400px;
-            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
-            border: 2px solid rgba(255,255,255,0.3); z-index: 10; cursor: pointer;
+        /* Vertical Line */
+        .tree ul ul::before {
+            content: ''; position: absolute; top: 0; left: 50%;
+            border-left: var(--line-weight) solid var(--branch-color, var(--default-line));
+            width: 0; height: 20px;
+        }
+
+        /* --- TEXT NODE STYLING --- */
+        .node-text {
+            position: relative;
+            display: inline-block;
+            padding: 5px 12px;
+            z-index: 10;
+            cursor: pointer;
+            background: white; /* Important: masks the lines at junction */
+            transition: transform 0.2s;
         }
 
         .name-display {
-            border: none; text-align: center; font-weight: 800; font-size: 17px;
-            outline: none; background: transparent; color: white; min-width: 30px;
+            border: none; text-align: center;
+            font-weight: 700; font-size: 16px;
+            outline: none; background: transparent;
+            color: var(--branch-color, #000);
+            min-width: 40px; display: inline-block;
         }
 
-        /* Heritage Colors */
-        .color-1 { --base: #2ecc71; } .color-2 { --base: #3498db; } 
-        .color-3 { --base: #9b59b6; } .color-4 { --base: #e67e22; } 
-        .color-5 { --base: #e74c3c; }
+        /* Root style */
+        .root-node .name-display { font-size: 22px; font-weight: 900; color: #000; }
 
-        .accent-none { background: var(--base); }
-        .accent-gold { background: linear-gradient(135deg, var(--base) 30%, #f1c40f 100%); }
-        .accent-silver { background: linear-gradient(135deg, var(--base) 30%, #bdc3c7 100%); }
-        .accent-bronze { background: linear-gradient(135deg, var(--base) 30%, #cd7f32 100%); }
+        /* Action Menu (+ and x) */
+        .btn-group {
+            position: absolute; top: -35px; left: 50%;
+            transform: translateX(-50%);
+            display: none; justify-content: center; gap: 8px;
+            background: #f0f0f0; padding: 5px 10px;
+            border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
 
-        .node-root { background: #1a1a1a; border-color: #f1c40f; }
-
-        /* Buttons Group */
-        .btn-group { display: none; justify-content: center; gap: 10px; margin-top: 10px; width: 100%; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px; }
         .active-node .btn-group { display: flex; }
-        .active-node { transform: scale(1.1); z-index: 100; box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
+        .active-node { transform: scale(1.1); z-index: 100; }
 
-        .circle-btn { border-radius: 50%; width: 28px; height: 28px; cursor: pointer; border: none; color: white; background: rgba(255,255,255,0.2); font-size: 18px; }
-        
-        [contenteditable]:empty:before { content: "Name"; opacity: 0.5; color: white; }
+        .circle-btn {
+            border-radius: 50%; width: 26px; height: 26px;
+            cursor: pointer; border: none; font-weight: bold;
+            display: flex; align-items: center; justify-content: center;
+            color: white;
+        }
+        .add-btn { background: #34C759; font-size: 20px; }
+        .del-btn { background: #FF3B30; font-size: 14px; }
+
+        /* Color Class Map */
+        .branch-color-1 { --branch-color: var(--color-1); }
+        .branch-color-2 { --branch-color: var(--color-2); }
+        .branch-color-3 { --branch-color: var(--color-3); }
+        .branch-color-4 { --branch-color: var(--color-4); }
+
+        [contenteditable]:empty:before { content: "Name"; opacity: 0.3; }
     </style>
 </head>
 <body onclick="closeAll()">
 
     <div class="header-ui">
-        <h2>Family Tree Builder</h2>
-        <p>Top-to-Bottom flow. Click boxes to Edit or add (+).</p>
+        <h2>Heritage Family Tree</h2>
+        <p>Text-only. Branches use Blue, Green, Red, and Black.</p>
     </div>
 
     <div id="capture-area">
         <div class="tree">
-            <ul id="tree-root">
-                <li>
-                    <div class="node-box node-root" onclick="toggleNode(event, this)">
+            <ul>
+                <li id="tree-root-li">
+                    <div class="node-text root-node active-node" onclick="toggleNode(event, this)">
                         <div class="name-display" contenteditable="true">Root Name</div>
                         <div class="btn-group">
-                            <button class="circle-btn" onclick="addChild(event, this)">+</button>
+                            <button class="circle-btn add-btn" onclick="addChild(event, this)">+</button>
                         </div>
                     </div>
                     <ul></ul>
@@ -141,15 +164,12 @@
     </div>
 
     <button class="pdf-btn" id="download-btn" onclick="downloadPDF()">
-        💾 Save as PDF
+        💾 Export as PDF
     </button>
 
     <script>
-        const colors = ['1', '2', '3', '4', '5'];
-        const accents = ['gold', 'silver', 'bronze', 'none'];
-        let branchCount = 0;
-
-        // Persistent data: Logic to save the tree state could be added here
+        const branchColors = ['branch-color-1', 'branch-color-2', 'branch-color-3', 'branch-color-4'];
+        let rootChildCount = 0;
 
         function toggleNode(e, el) {
             e.stopPropagation();
@@ -159,13 +179,13 @@
         }
 
         function closeAll() {
-            document.querySelectorAll('.node-box').forEach(b => b.classList.remove('active-node'));
+            document.querySelectorAll('.node-text').forEach(b => b.classList.remove('active-node'));
         }
 
         function addChild(e, btn) {
             e.stopPropagation();
             const parentLi = btn.closest('li');
-            const parentBox = btn.closest('.node-box');
+            const parentNodeText = btn.closest('.node-text');
             let childUl = parentLi.querySelector('ul');
             
             if (!childUl) {
@@ -173,23 +193,27 @@
                 parentLi.appendChild(childUl);
             }
 
-            let bCol = "", acc = "";
-            if (parentBox.classList.contains('node-root')) {
-                bCol = "color-" + colors[branchCount % 5];
-                acc = "accent-none";
-                branchCount++;
+            // Heritage Color Logic
+            let assignedColorClass = "";
+            if (parentNodeText.classList.contains('root-node')) {
+                // Assign one of the 4 colors to each primary branch
+                assignedColorClass = branchColors[rootChildCount % 4];
+                rootChildCount++;
             } else {
-                bCol = parentBox.className.split(' ').find(c => c.startsWith('color-')) || "color-1";
-                acc = "accent-" + accents[childUl.children.length % 4];
+                // Sub-branches inherit the color from the parent line
+                const parentLiClasses = Array.from(parentLi.classList);
+                assignedColorClass = parentLiClasses.find(c => c.startsWith('branch-color-')) || "";
             }
 
             const newLi = document.createElement('li');
+            if (assignedColorClass) newLi.classList.add(assignedColorClass);
+
             newLi.innerHTML = `
-                <div class="node-box ${bCol} ${acc}" onclick="toggleNode(event, this)">
+                <div class="node-text" onclick="toggleNode(event, this)">
                     <div class="name-display" contenteditable="true"></div>
                     <div class="btn-group">
-                        <button class="circle-btn" onclick="addChild(event, this)">+</button>
-                        <button class="circle-btn" style="font-size:12px" onclick="if(confirm('Remove this person?')) this.closest('li').remove()">✕</button>
+                        <button class="circle-btn add-btn" onclick="addChild(event, this)">+</button>
+                        <button class="circle-btn del-btn" onclick="if(confirm('Delete this branch?')) this.closest('li').remove()">✕</button>
                     </div>
                 </div>
                 <ul></ul>`;
@@ -201,13 +225,13 @@
 
         async function downloadPDF() {
             const btn = document.getElementById('download-btn');
-            btn.innerText = "Please wait...";
+            btn.innerText = "Processing...";
             btn.disabled = true;
             closeAll();
 
             const captureArea = document.getElementById('capture-area');
             try {
-                const canvas = await html2canvas(captureArea, { scale: 2, useCORS: true });
+                const canvas = await html2canvas(captureArea, { scale: 3, useCORS: true });
                 const imgData = canvas.toDataURL('image/png');
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF({
@@ -216,11 +240,11 @@
                     format: [canvas.width, canvas.height]
                 });
                 pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-                pdf.save("family-tree-report.pdf");
+                pdf.save("family-tree.pdf");
             } catch (err) {
-                alert("Capture failed.");
+                alert("Capture failed. Try a different browser.");
             }
-            btn.innerText = "💾 Save as PDF";
+            btn.innerText = "💾 Export as PDF";
             btn.disabled = false;
         }
     </script>
